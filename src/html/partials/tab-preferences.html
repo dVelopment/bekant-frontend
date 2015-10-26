@@ -15,7 +15,7 @@
         <ion-list show-delete="showDelete.value" can-swipe="canSwipe">
             <ion-item ng-repeat-start="preference in preferences" ng-click="go($event, preference)">
                 <h2>{{preference.label}}</h2>
-                <p>{{preference.height | number }}cm</p>
+                <p>{{preference.position | number }}ns</p>
                 <ion-option-button class="button-info" ng-click="edit($event, preference)" translate>Edit</ion-option-button>
                 <ion-delete-button class="ion-minus-circled" ng-click="remove($event, preference)"></ion-delete-button>
             </ion-item>
@@ -25,9 +25,9 @@
                         <input type="text" ng-model="preference.label" ng-required="true" placeholder="{{'preference.label'|translate}}" />
                     </label>
                     <label class="item item-input">
-                        <input type="text" ng-model="preference.height" ng-required="true" placeholder="{{'preference.height'|translate}}" />
+                        <input type="text" ng-model="preference.position" ng-required="true" placeholder="{{'preference.position'|translate}}" />
                     </label>
-                    <button type="button" class="button button-block button-stable" ng-click="setToCurrentHeight($event, preference)" translate>Set to current height</button>
+                    <button type="button" class="button button-block button-stable" ng-click="setToCurrentHeight($event, preference)" translate>Set to current position</button>
                     <button type="submit" class="button button-block icon-left ion-checkmark button-positive" translate>Update</button>
                     <button type="button" class="button button-block icon-left ion-ios-close-empty button-outline" ng-click="cancelEditing($event, preference)" translate>Cancel</button>
                 </form>

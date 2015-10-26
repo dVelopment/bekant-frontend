@@ -54,7 +54,9 @@ export default class PreferencesController {
             .then((preference) => {
                 this.$log.debug('[PreferencesCtrl] preference created', preference);
                 preference = _.extend(preference, this.$scope.model);
-                preference.height = this.distance;
+                preference.position = this.$rootScope.currentPosition;
+
+                this.$log.debug('[PreferencesCtrl] save new preference', preference);
 
                 preference.$save().then((p) => {
                     this.$scope.saving = false;
@@ -112,7 +114,7 @@ export default class PreferencesController {
         event.preventDefault();
         event.stopPropagation();
 
-        preference.height = this.distance;
+        preference.position = this.$rootScope.currentPosition;
 
     }
 

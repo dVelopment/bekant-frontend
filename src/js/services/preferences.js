@@ -11,7 +11,7 @@ function preferences($resource, Api, $rootScope, APP_EVENTS) {
                 api = $resource(url + '/api/preferences/:id', {id: '@_id'}, {
                     'update': {
                         method: 'PUT',
-                        transformRequest: (data, headers) => {
+                        transformRequest: (data) => {
                             let tmp = _.extend({}, data);
                             delete tmp._id;
 

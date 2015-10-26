@@ -18,7 +18,6 @@ class Socket {
         this.socketUrl = null;
         this.listeners = {};
         this.readyListeners = [];
-        this.resetDistance();
     }
 
     on(event, listener) {
@@ -40,21 +39,9 @@ class Socket {
         }
     }
 
-    calculateDistance() {
-        if (!this.distanceReads) {
-            return 0.0;
-        }
-
-        return this.distanceSum / this.distanceReads;
-    }
-
     onDistance(distance) {
-        distance = parseFloat(distance);
-        this.distanceReads++;
-        this.distanceSum += distance;
-        let average = this.calculateDistance();
-        this.$rootScope.$broadcast(this.APP_EVENTS.distanceRead, average);
-        this.trigger('distance', average);
+        this.$rootScope.$broadcast(this.APP_EVENTS.distanceRead, distance);
+        this.trigger('distance', distance);
     }
 
     onMoving(direction) {
@@ -63,17 +50,11 @@ class Socket {
         this.trigger('moving', direction);
     }
 
-    onStopped() {
+    onStopped(distance) {
         this.$log.debug('[Socket] stop');
         this.$rootScope.$broadcast(this.APP_EVENTS.stopped);
-        this.resetDistance();
+        this.$rootScope.$broadcast(this.APP_EVENTS.distanceRead, distance);
         this.trigger('stop');
-    }
-
-    resetDistance() {
-        this.$log.debug('[Socket] reset distance');
-        this.distanceReads = 0;
-        this.distanceSum = 0.0;
     }
 
     move(direction) {
@@ -107,14 +88,40 @@ class Socket {
         this.promise = new Promise((resolve) => {
             this.socket.on('connect', () => {
                 this.connected = true;
-                this.$log.debug('[Socket] connection', _.values(arguments));
                 this.socket.on('distance', this.onDistance.bind(this));
                 this.socket.on('moving', this.onMoving.bind(this));
                 this.socket.on('stopped', this.onStopped.bind(this));
+                this.socket.on('priming', this.onPriming.bind(this));
+                this.socket.on('primed', this.onPrimed.bind(this));
+                this.socket.on('status', this.onStatus.bind(this));
+
+                this.socket.emit('status');
+                // get the current position
+                this.socket.emit('position');
                 resolve();
                 _.forEach(this.readyListeners, (l) => l());
+                this.readyListeners.length = 0;
             });
         });
+    }
+
+    prime() {
+        this.socket.emit('prime');
+    }
+
+    onPriming() {
+        this.priming = true;
+    }
+
+    onPrimed() {
+        this.priming = true;
+
+        this.$rootScope.$broadcast(this.APP_EVENTS.deskPrimed);
+        this.socket.emit('status');
+    }
+
+    onStatus(isPrimed) {
+        this.$rootScope.$broadcast(this.APP_EVENTS.deskStatus, isPrimed);
     }
 
     ready() {

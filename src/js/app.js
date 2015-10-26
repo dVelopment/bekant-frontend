@@ -85,6 +85,16 @@ let app = angular.module('bekant', ['ionic', 'controllers', 'services', 'directi
                 controller: 'MainCtrl'
             })
 
+            .state('prime', {
+                url: '/prime',
+                templateUrl: 'partials/prime.html',
+                controller: 'PrimeCtrl',
+                resolve: {
+                    apiUrl: requireApiUrl,
+                    currentUser: requireUser
+                }
+            })
+
             .state('login', {
                 url: '/login',
                 templateUrl: 'partials/login.html',

@@ -10,10 +10,12 @@ function init(app) {
         online: 'app-online',
         beforeUnload: 'app-before-unload',
         configured: 'app-configured',
-        distanceRead: 'app-distance-read'
+        distanceRead: 'app-distance-read',
+        deskStatus: 'app-desk-status',
+        deskPrimed: 'app-desk-is-primed'
     });
 
-    app.run(['$rootScope', 'APP_EVENTS', '$ionicPlatform', ($rootScope, APP_EVENTS, $ionicPlatform) => {
+    app.run(['$rootScope', 'APP_EVENTS', '$ionicPlatform', '$state', ($rootScope, APP_EVENTS, $ionicPlatform, $state) => {
         _.forEach(APP_EVENTS, (key, value) => {
             $ionicPlatform.on(key, () => {
                 $rootScope.$broadcast(value);
@@ -22,7 +24,22 @@ function init(app) {
 
         angular.element(window).on('beforeunload', () => {
             $rootScope.$broadcast(APP_EVENTS.beforeUnload);
-        })
+        });
+
+        $rootScope.$on(APP_EVENTS.distanceRead, (event, distance) => {
+            $rootScope.currentPosition = distance;
+            console.info('[events] current position', distance);
+        });
+
+        $rootScope.$on(APP_EVENTS.deskStatus, (event, isPrimed) => {
+            if (!isPrimed) {
+                $state.go('prime');
+            }
+        });
+
+        $rootScope.$on(APP_EVENTS.deskPrimed, (event) => {
+            $state.go('tab.steer');
+        });
     }]);
 }
 
