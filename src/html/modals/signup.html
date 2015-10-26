@@ -1,0 +1,26 @@
+<ion-modal-view>
+    <ion-header-bar>
+        <h1 class="title" translate>Signup</h1>
+    </ion-header-bar>
+    <ion-content>
+        <form name="signupForm" novalidate ng-submit="signupForm.$valid && signup()">
+            <div class="list list-inset">
+                <label class="item item-input" ng-class="{'assertive': signupForm.host.$invalid}">
+                    <input type="text" ng-model="signupModel.username" name="username" ng-required="true" placeholder="{{'signup.username'|translate}}" />
+                </label>
+
+                <label class="item item-input" ng-class="{'assertive': signupForm.host.$invalid}">
+                    <input type="password" pattern="\w{8,}" ng-model="signupModel.password" name="password" ng-required="true" placeholder="{{'signup.password'|translate}}" />
+                </label>
+
+                <label class="item item-input" ng-class="{'assertive': signupForm.host.$invalid}">
+                    <input type="password" pattern="\w{8,}"  ng-model="signupModel.passwordRepeat" password-match="signupModel.password" name="passwordRepeat" ng-required="true" placeholder="{{'signup.passwordRepeat'|translate}}" />
+                </label>
+
+                <button class="button button-block button-positive" type="submit" ng-disabled="signupForm.$invalid || signingUp">
+                    <span translate>Signup</span>
+                </button>
+            </div>
+        </form>
+    </ion-content>
+</ion-modal-view>

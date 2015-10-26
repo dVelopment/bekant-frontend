@@ -1,0 +1,19 @@
+<!--
+Create tabs with an icon and label, using the tabs-positive style.
+Each tab's child <ion-nav-view> directive will have its own
+navigation history that also transitions its views in and out.
+-->
+<ion-tabs class="tabs-icon-top tabs-color-active-positive">
+
+    <!-- Dashboard Tab -->
+    <ion-tab title="{{'tab.steer'|translate}}" icon-off="ion-ios-game-controller-a-outline" icon-on="ion-ios-game-controller-a" ui-sref="tab.steer">
+        <ion-nav-view name="tab-steer"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Account Tab -->
+    <ion-tab title="{{'tab.preferences'|translate}}" icon-off="ion-ios-settings" icon-on="ion-ios-settings-strong" ui-sref="tab.preferences">
+        <ion-nav-view name="tab-preferences"></ion-nav-view>
+    </ion-tab>
+
+
+</ion-tabs>

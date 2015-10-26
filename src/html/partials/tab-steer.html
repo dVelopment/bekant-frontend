@@ -1,0 +1,19 @@
+<ion-view view-title="{{'tab.steer'|translate}}">
+    <ion-content class="padding">
+        <div class="row">
+            <button class="button button-block icon button-positive ion-arrow-up-a" ng-class="getButtonClass('up')" type="button" on-release="stop($event)" on-touch="up($event)"></button>
+        </div>
+        <div class="row">
+            <button class="button button-block icon button-positive ion-stop" ng-class="getButtonClass('stop')" type="button" ng-click="stop($event)"></button>
+        </div>
+        <div class="row">
+            <button class="button button-block icon button-positive ion-arrow-down-a" ng-class="getButtonClass('down')" type="button" on-release="stop($event)" on-touch="down($event)"></button>
+        </div>
+        <section class="card" ng-if="distance">
+            <header class="item item-divider" translate>Current height</header>
+            <div class="item item-text-wrap text-center">
+                {{ distance | number }}cm
+            </div>
+        </section>
+    </ion-content>
+</ion-view>

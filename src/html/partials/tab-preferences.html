@@ -1,0 +1,48 @@
+<ion-view view-title="{{'tab.preferences'|translate}}">
+    <ion-nav-bar class="bar-stable">
+        <ion-nav-back-button></ion-nav-back-button>
+
+        <ion-nav-buttons side="left">
+            <button class="button button-icon button-clear ion-navicon" menu-toggle="left">
+            </button>
+        </ion-nav-buttons>
+        <ion-nav-buttons side="right">
+            <button class="button button-icon button-clear" ng-class="showDelete.value ? 'ion-ios-gear icon-active' : 'ion-ios-gear-outline'" ng-click="toggleDelete($event)"></button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
+    <ion-content class="padding">
+        <ion-refresher pulling-text="{{ 'Pull to refresh'|translate }}" on-refresh="refresh()"></ion-refresher>
+        <ion-list show-delete="showDelete.value" can-swipe="canSwipe">
+            <ion-item ng-repeat-start="preference in preferences" ng-click="go($event, preference)">
+                <h2>{{preference.label}}</h2>
+                <p>{{preference.height | number }}cm</p>
+                <ion-option-button class="button-info" ng-click="edit($event, preference)" translate>Edit</ion-option-button>
+                <ion-delete-button class="ion-minus-circled" ng-click="remove($event, preference)"></ion-delete-button>
+            </ion-item>
+            <div ng-repeat-end ng-if="preference._editing">
+                <form name="editForm" ng-submit="editForm.$valid && update(preference)" novalidate>
+                    <label class="item item-input">
+                        <input type="text" ng-model="preference.label" ng-required="true" placeholder="{{'preference.label'|translate}}" />
+                    </label>
+                    <label class="item item-input">
+                        <input type="text" ng-model="preference.height" ng-required="true" placeholder="{{'preference.height'|translate}}" />
+                    </label>
+                    <button type="button" class="button button-block button-stable" ng-click="setToCurrentHeight($event, preference)" translate>Set to current height</button>
+                    <button type="submit" class="button button-block icon-left ion-checkmark button-positive" translate>Update</button>
+                    <button type="button" class="button button-block icon-left ion-ios-close-empty button-outline" ng-click="cancelEditing($event, preference)" translate>Cancel</button>
+                </form>
+            </div>
+        </ion-list>
+        <form name="preferenceForm" novalidate ng-submit="preferenceForm.$valid && save()" ng-if="adding">
+            <div class="list list-inset">
+                <label class="item item-input">
+                    <input type="text" ng-model="model.label" ng-required="true" placeholder="{{'preference.label'|translate}}" />
+                </label>
+            </div>
+            <button class="button button-positive button-block" type="submit" ng-disabled="preferenceForm.$invalid || saving" translate>Save</button>
+        </form>
+        <button class="button button-block icon-left" ng-class="adding ? 'button-stable button-outline ion-ios-close-empty' : 'ion-plus-round button-balanced'" ng-click="toggleAdding($event)">
+            {{ (adding ? 'Cancel' : 'Add Preference') | translate }}
+        </button>
+    </ion-content>
+</ion-view>
