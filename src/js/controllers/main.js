@@ -37,12 +37,17 @@ export default class MainController {
             passwordRepeat: 'passw0rd'
         };
 
-        $scope.$watch('services()', (services, oldServices) => {
+        let watchers = [];
+        watchers.push($scope.$on('$destroy'), () => {
+            _.forEach(watchers, (w) => w());
+        });
+
+        watchers.push($scope.$watch('services()', (services, oldServices) => {
             $log.debug('[MainCtrl] services()', services, oldServices);
-            if (services.length && (!oldServices || services.length !== oldServices.length)) {
+            if (services && services.length && (!oldServices || services.length !== oldServices.length)) {
                 this.onServiceAdded();
             }
-        }, true);
+        }, true));
 
         $scope.submit = this.submit.bind(this);
         $scope.configured = this.isConfigured.bind(this);

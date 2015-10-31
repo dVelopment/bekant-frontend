@@ -3,12 +3,18 @@
 const URL = Symbol();
 
 class Api {
-    constructor($http, Settings, $q, $rootScope, APP_EVENTS) {
+    constructor($log, $http, Settings, $q, $rootScope, APP_EVENTS, $interval) {
+        this.$log = $log;
         this.$http = $http;
         this.settings = Settings;
         this.$q = $q;
         this.$rootScope = $rootScope;
         this.APP_EVENTS = APP_EVENTS;
+        this.$interval = $interval;
+
+        $rootScope.$on(APP_EVENTS.unconfigured, () => {
+            this.clearUrl();
+        });
 
         this.def = null;
     }
@@ -18,7 +24,6 @@ class Api {
     }
 
     requireApiUrl() {
-        console.debug('[Api] requireApiUrl', this.def);
         if (!this.def) {
             this.def = this.$q.defer();
 
@@ -34,7 +39,7 @@ class Api {
                         return;
                     }
 
-                    // check url
+                    // ck url
                     this.checkUrl(url).then(() => {
                         this.def.resolve(url);
                     }, (err) => {
@@ -57,21 +62,64 @@ class Api {
         return this[URL];
     }
 
-    checkUrl(url) {
-        return this.$http.get(url + '/auth/loggedin')
-            .then((response) => {
-                this.settings.set('apiUrl', url);
-                this[URL] = url;
-                this.$rootScope.$broadcast(this.APP_EVENTS.configured, url);
+    clearUrl() {
+        if (this[URL]) {
+            if (this.url === this.settings.get('apiUrl')) {
+                this.settings.remove('apiUrl');
+            }
 
-                return response.data;
+            delete this[URL];
+        }
+        this.def = null;
+        this.clearInterval();
+    }
+
+    setInterval() {
+        this.clearInterval();
+        this.interval = this.$interval(this.ping.bind(this), 10000);
+    }
+
+    clearInterval() {
+        if (this.interval) {
+            this.$interval.cancel(this.interval);
+            this.interval = null;
+        }
+    }
+
+    ping() {
+        if (!this[URL]) {
+            return this.clearInterval();
+        }
+
+        this.$http.post(this.url + '/ping')
+            .then((response) => {
+                if (!response.data || response.data !== 'pong') {
+                    this.clearUrl();
+                }
+            });
+    }
+
+    checkUrl(url) {
+        return this.$http.post(url + '/ping')
+            .then((response) => {
+                if (response.data && response.data === 'pong') {
+                    this.settings.set('apiUrl', url);
+                    this[URL] = url;
+                    this.$rootScope.$broadcast(this.APP_EVENTS.configured, url);
+
+                    this.setInterval();
+
+                    return url;
+                } else {
+                    return Promise.reject();
+                }
             });
     }
 }
 
 export default [
-    '$http', 'Settings', '$q', '$rootScope', 'APP_EVENTS',
-    ($http, Settings, $q, $rootScope, APP_EVENTS) => {
-        return new Api($http, Settings, $q, $rootScope, APP_EVENTS);
+    '$log', '$http', 'Settings', '$q', '$rootScope', 'APP_EVENTS', '$interval',
+    ($log, $http, Settings, $q, $rootScope, APP_EVENTS, $interval) => {
+        return new Api($log, $http, Settings, $q, $rootScope, APP_EVENTS, $interval);
     }
 ];

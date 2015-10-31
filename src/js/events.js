@@ -10,6 +10,7 @@ function init(app) {
         online: 'app-online',
         beforeUnload: 'app-before-unload',
         configured: 'app-configured',
+        unconfigured: 'app-unconfigured',
         distanceRead: 'app-distance-read',
         deskStatus: 'app-desk-status',
         deskPrimed: 'app-desk-is-primed'

@@ -6,6 +6,7 @@ import Api from './api';
 import Auth from './auth';
 import Socket from './socket';
 import Preferences from './preferences';
+import Credentials from './credentials';
 
 import 'angular-resource';
 
@@ -15,9 +16,11 @@ export default function (angular) {
     app.factory('Settings', Settings);
     app.factory('Bonjour', Bonjour);
     app.factory('Api', Api);
-    app.factory('Auth', Auth);
+    app.factory('Auth', Auth.factory);
+    app.factory('AuthInterceptor', Auth.interceptor);
     app.factory('Socket', Socket);
     app.factory('Preferences', Preferences);
+    app.factory('Credentials', Credentials);
 
     app.run(['Auth', 'APP_EVENTS', '$rootScope', (Auth, APP_EVENTS, $rootScope) => {
         Auth.checkState().then((loggedIn) => {
