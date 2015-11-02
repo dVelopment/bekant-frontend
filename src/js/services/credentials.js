@@ -69,13 +69,32 @@ class KeychainStore {
             .replace(/[\t]/g, '\\t');
     }
 
+    static parse(value) {
+        return JSON.parse(
+            value
+                .replace(/\\\\/g, '\\')
+                .replace(/\\\"/g, '"')
+                .replace(/\//g, '/')
+                .replace(/\\b/g, '\b')
+                .replace(/\\f/g, '\f')
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '\r')
+                .replace(/\\t/g, '\t')
+        );
+    }
+
     get(key) {
         return this.$keychain.getForKey(key, SERVICE_NAME)
             .then((value) => {
-                this.$log.info('[KeychainStore] get', key, value);
-                if (value) {
-                    return JSON.parse(value);
+                if (value && value !== '') {
+                    this.$log.info('[KeychainStore] get', key, KeychainStore.parse(value));
+                    return KeychainStore.parse(value);
+                } else {
+                    return null;
                 }
+            }, (err) => {
+                this.$log.error('[KeychainStore] error getting value', err);
+                return null;
             });
     }
 
@@ -84,7 +103,7 @@ class KeychainStore {
     }
 
     remove(key) {
-        return this.$keychain.setForKey(key, SERVICE_NAME, null);
+        return this.$keychain.removeForKey(key, SERVICE_NAME);
     }
 }
 
@@ -93,7 +112,7 @@ class CredentialsStore {
         this.promise = new Promise((resolve) => {
             $ionicPlatform.ready().then(() => {
                 if (ionic.Platform.isIOS() && ('undefined' !== typeof Keychain)) {
-                    this.store = new KeychainStore($log, $injector.get('$cordovaKeychainSource'));
+                    this.store = new KeychainStore($log, $injector.get('$cordovaKeychain'));
                 } else {
                     this.store = new LocalStorageStore($log);
                 }

@@ -44,12 +44,21 @@ class Auth {
     }
 
     saveApiKey(data) {
-        if (data && data.apiKey) {
-            this.credentials.ready().then(() => {
-                this.credentials.set('apiKey', data.apiKey);
-                this[API_KEY] = data.apiKey.apiKey;
-            });
-        }
+        return new Promise((resolve) => {
+            this.$log.debug('[Auth] saveApiKey', data);
+            if (data && data.apiKey) {
+                this.credentials.ready().then(() => {
+                    this.credentials.set('apiKey', data.apiKey)
+                        .then((tmp) => {
+                            this.$log.debug('[Auth] apiKey stored', tmp);
+
+                            resolve();
+                        });
+                });
+            } else {
+                resolve();
+            }
+        });
     }
 
     login(provider, data) {
@@ -91,33 +100,41 @@ class Auth {
     }
 
     checkState() {
-        return this.credentials.ready().then(() => {
-            return this.credentials.get('apiKey')
-                .then((apiKey) => {
-                    this.$log.debug('[Auth] get api key', apiKey);
-                    if (apiKey) {
-                        return this.checkApiKey(apiKey);
-                    }
+        if (!this.checking) {
+            this.checking = this.credentials.ready().then(() => {
+                return this.credentials.get('apiKey')
+                    .then((apiKey) => {
+                        this.checking = null;
+                        this.$log.debug('[Auth] get api key', apiKey);
+                        if (apiKey && apiKey.apiKey) {
+                            return this.checkApiKey(apiKey.apiKey);
+                        }
 
-                    return false;
-                }, (err) => {
-                    this.$log.warn('[Auth] error retrieving api key', err);
-                    return false;
-                });
-        });
+                        return false;
+                    }, (err) => {
+                        this.checking = null;
+                        this.$log.warn('[Auth] error retrieving api key', err);
+                        return false;
+                    });
+            });
+        }
+
+        return this.checking;
     }
 
     checkApiKey(apiKey) {
         this.$log.debug('[Auth] check api key', apiKey);
         return this.api.requireApiUrl().then((url) => {
             let headers = {};
-            headers[API_KEY_HEADER] = apiKey.apiKey;
+            headers[API_KEY_HEADER] = apiKey;
             return this.$http.post(`${url}/auth/api_key/extend`, {}, {
                 headers: headers
             }).then((response) => {
                 let data = response.data;
                 this.$log.debug('[Auth] successfully checked API key', data);
-                this.saveApiKey(data);
+                this.saveApiKey({apiKey: data});
+
+                return true;
             }, (err) => {
                 this.$log.warn('[Auth] invalid api key', err);
 
@@ -129,7 +146,7 @@ class Auth {
     }
 
     isLoggedIn() {
-        this.$log.debug('[Auth] isLoggedIn', this.loggedIn);
+        //this.$log.debug('[Auth] isLoggedIn', this.loggedIn);
         return this.loggedIn;
     }
 

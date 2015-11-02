@@ -13,5 +13,9 @@ export default function(app) {
             '$injector', ($injector) => $injector.get('AuthInterceptor')
         ]);
     }]);
+
+    app.config(['$logProvider', ($logProvider) =>{
+        $logProvider.debugEnabled(false);
+    }]);
 }
 

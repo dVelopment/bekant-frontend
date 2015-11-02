@@ -59,7 +59,7 @@ class Settings {
     }
 
     ready() {
-        console.debug('[Settings] ready', arguments);
+        this.$log.debug('[Settings] ready', arguments);
         return this.def.promise;
     }
 

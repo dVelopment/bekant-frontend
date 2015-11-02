@@ -141,10 +141,12 @@ let app = angular.module('bekant', ['ionic', 'controllers', 'services', 'directi
     })
     .run(['$rootScope', '$state', ($rootScope, $state) => {
         $rootScope.$on('$stateChangeError', (event, toState, toParams, fromState, fromParams, error) => {
-            console.warn('$stateChangeError', error);
+            console.warn('$stateChangeError', error, toState, fromState);
+            event.preventDefault();
             if (error === 'NO_API_URL') {
                 $state.go('init');
             } else if (error === 'AUTH_REQUIRED') {
+                console.log('go to login');
                 $state.go('login');
             }
         });
