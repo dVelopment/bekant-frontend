@@ -31,11 +31,7 @@ export default class MainController {
         });
 
         this.$scope.loginModel = {};
-        this.$scope.signupModel = {
-            username: 'daniel',
-            password: 'passw0rd',
-            passwordRepeat: 'passw0rd'
-        };
+        this.$scope.signupModel = {};
 
         let watchers = [];
         watchers.push($scope.$on('$destroy'), () => {

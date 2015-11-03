@@ -15,7 +15,7 @@ export default function(app) {
     }]);
 
     app.config(['$logProvider', ($logProvider) =>{
-        $logProvider.debugEnabled(false);
+        $logProvider.debugEnabled(true);
     }]);
 }
 

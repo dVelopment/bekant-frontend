@@ -1,7 +1,7 @@
 'use strict';
 
 export default class SteerController {
-    constructor($log, Socket, $scope) {
+    constructor($log, Socket, $scope, $rootScope) {
         this.$log = $log;
         this.$scope = $scope;
         this.socket = Socket;
@@ -12,15 +12,8 @@ export default class SteerController {
         this.$scope.stop = this.stop.bind(this);
         this.moving = false;
 
-        this.socket.on('distance', this.onDistance.bind(this));
         this.socket.on('moving', this.onMoving.bind(this));
         this.socket.on('stop', this.onStop.bind(this));
-    }
-
-    onDistance(distance) {
-        this.$scope.$apply(() => {
-            this.$scope.distance = distance;
-        });
     }
 
     onMoving(direction) {
@@ -72,6 +65,6 @@ export default class SteerController {
     }
 
     static get $inject() {
-        return ['$log', 'Socket', '$scope'];
+        return ['$log', 'Socket', '$scope', '$rootScope'];
     }
 }

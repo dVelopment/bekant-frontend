@@ -9,10 +9,10 @@
         <div class="row">
             <button class="button button-block icon button-positive ion-arrow-down-a" ng-class="getButtonClass('down')" type="button" on-release="stop($event)" on-touch="down($event)"></button>
         </div>
-        <section class="card" ng-if="distance">
+        <section class="card" ng-if="currentPosition">
             <header class="item item-divider" translate>Current height</header>
             <div class="item item-text-wrap text-center">
-                {{ distance | number }}cm
+                {{ currentPosition | number }}cm
             </div>
         </section>
     </ion-content>

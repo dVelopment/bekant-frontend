@@ -1,5 +1,7 @@
 'use strict';
 
+import _ from 'lodash';
+
 const USER = Symbol();
 const LOGGED_IN = Symbol();
 const API_KEY = Symbol();
@@ -43,21 +45,35 @@ class Auth {
         });
     }
 
-    saveApiKey(data) {
-        return new Promise((resolve) => {
-            this.$log.debug('[Auth] saveApiKey', data);
-            if (data && data.apiKey) {
-                this.credentials.ready().then(() => {
-                    this.credentials.set('apiKey', data.apiKey)
-                        .then((tmp) => {
-                            this.$log.debug('[Auth] apiKey stored', tmp);
+    saveApiKey(data, url) {
+        let promises = [];
 
-                            resolve();
-                        });
-                });
-            } else {
-                resolve();
+        if (data && data.apiKey) {
+            promises.push(this.credentials.ready().then(() => {
+                return this.credentials.get('apiKeys');
+            }));
+
+            if (!url) {
+                promises.push(this.api.requireApiUrl());
             }
+        }
+
+        return Promise.all(promises).then((result) => {
+            console.debug('result', result);
+            let [apiKeys, url] = result;
+
+            if (!apiKeys || !_.isObject(apiKeys)) {
+                apiKeys = {};
+            }
+
+            apiKeys[url] = data.apiKey;
+
+            return this.credentials.set('apiKeys', apiKeys)
+                .then((tmp) => {
+                    this.$log.debug('[Auth] apiKey stored', tmp);
+
+                    return null;
+                });
         });
     }
 
@@ -101,52 +117,71 @@ class Auth {
 
     checkState() {
         if (!this.checking) {
-            this.checking = this.credentials.ready().then(() => {
-                return this.credentials.get('apiKey')
-                    .then((apiKey) => {
-                        this.checking = null;
-                        this.$log.debug('[Auth] get api key', apiKey);
-                        if (apiKey && apiKey.apiKey) {
-                            return this.checkApiKey(apiKey.apiKey);
-                        }
+            this.checking = Promise.all([
+                this.api.requireApiUrl(),
+                this.credentials.ready().then(() => {
+                    return this.credentials.get('apiKeys');
+                })
+            ]).then((result) => {
+                let [url, apiKeys] = result;
+                this.checking = null;
+                this.$log.debug('[Auth] get api key', result, url, apiKeys);
 
-                        return false;
-                    }, (err) => {
-                        this.checking = null;
-                        this.$log.warn('[Auth] error retrieving api key', err);
-                        return false;
-                    });
+                if (!apiKeys || !apiKeys[url]) {
+                    return false;
+                }
+
+                return this.checkApiKey(apiKeys[url].apiKey, url);
+            }, (err) => {
+                this.checking = null;
+                this.$log.warn('[Auth] error retrieving api key', err);
+                return false;
             });
         }
 
         return this.checking;
     }
 
-    checkApiKey(apiKey) {
-        this.$log.debug('[Auth] check api key', apiKey);
-        return this.api.requireApiUrl().then((url) => {
-            let headers = {};
-            headers[API_KEY_HEADER] = apiKey;
-            return this.$http.post(`${url}/auth/api_key/extend`, {}, {
-                headers: headers
-            }).then((response) => {
-                let data = response.data;
-                this.$log.debug('[Auth] successfully checked API key', data);
-                this.saveApiKey({apiKey: data});
+    removeApiKey(url) {
+        this.credentials.ready().then(() => {
+            this.credentials.get('apiKeys')
+                .then((apiKeys) => {
+                    if (!apiKeys || !apiKeys[url]) {
+                        return;
+                    }
 
-                return true;
-            }, (err) => {
-                this.$log.warn('[Auth] invalid api key', err);
+                    delete apiKeys[url];
+                    this.credentials.set('apiKeys', apiKeys);
+                });
+        });
+    }
 
-                this.credentials.remove('apiKey');
+    checkApiKey(apiKey, url) {
+        this.$log.debug('[Auth] check api key', apiKey, url);
+        let headers = {};
+        headers[API_KEY_HEADER] = apiKey;
+        return this.$http.post(`${url}/auth/api_key/extend`, {}, {
+            headers: headers
+        }).then((response) => {
+            let data = response.data;
+            this.$log.debug('[Auth] successfully checked API key', data);
+            this.saveApiKey({apiKey: data}, url);
+            this[API_KEY] = data;
+            this.$rootScope.apiKey = data.apiKey;
 
-                return Promise.reject();
-            });
+            return true;
+        }, (err) => {
+            this.$log.warn('[Auth] invalid api key', err);
+
+            this.credentials.remove('apiKey');
+            delete this[API_KEY];
+            delete this.$rootScope.apiKey;
+
+            return Promise.reject();
         });
     }
 
     isLoggedIn() {
-        //this.$log.debug('[Auth] isLoggedIn', this.loggedIn);
         return this.loggedIn;
     }
 
